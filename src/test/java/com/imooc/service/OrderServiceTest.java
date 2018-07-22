@@ -87,6 +87,13 @@ public class OrderServiceTest extends BaseTest {
         OrderDTO orderDTO = orderService.findOne("1531659157909232033");
         OrderDTO result = orderService.paid(orderDTO);
         Assert.assertEquals(Integer.valueOf(1), result.getPayStatus());
+    }
 
+    @Test
+    public void findListAll() {
+        PageRequest request = new PageRequest(2, 5);
+        Page<OrderDTO> result = orderService.findList(request);
+//        Assert.assertEquals(5, result.getSize());
+        Assert.assertTrue("查询所有订单列表", result.getTotalElements() > 0);
     }
 }

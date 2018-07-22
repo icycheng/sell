@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Date;
 
 /**
  * @author: icych
@@ -14,7 +15,7 @@ import javax.persistence.Id;
  * @date: Created on 20:40 2018/7/11
  */
 @Entity
-@DynamicUpdate//update时如果对象属性值未变化,不会执行SQL
+@DynamicUpdate
 @Data
 public class ProductCategory {
     @Id
@@ -24,6 +25,10 @@ public class ProductCategory {
     private String categoryName;
 
     private Integer categoryType;
+
+    private Date createTime;
+
+    private Date updateTime;
 
     public ProductCategory() {
     }

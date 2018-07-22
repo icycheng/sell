@@ -1,6 +1,12 @@
 package com.imooc.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.imooc.dataobject.OrderDetail;
+import com.imooc.enums.OrderStatusEnum;
+import com.imooc.enums.PayStatusEnum;
+import com.imooc.util.Date2LongSerializer;
+import com.imooc.util.EnumUtil;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,6 +19,8 @@ import java.util.List;
  * @date: Created on 19:16 2018/7/15
  */
 @Data
+//序列化的时候,忽略null值
+//@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDTO {
     private String orderId;
 
@@ -39,9 +47,24 @@ public class OrderDTO {
      */
     private Integer payStatus;
 
+    /**
+     * 创建时间,序列化的时候,需要除以1000
+     */
+    @JsonSerialize(using = Date2LongSerializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = Date2LongSerializer.class)
     private Date updateTime;
 
     private List<OrderDetail> orderDetailList;
+
+    @JsonIgnore
+    public OrderStatusEnum getOrderStatusEnum() {
+        return EnumUtil.getByCode(orderStatus, OrderStatusEnum.class);
+    }
+
+    @JsonIgnore
+    public PayStatusEnum getPayStatusEnum() {
+        return EnumUtil.getByCode(payStatus, PayStatusEnum.class);
+    }
 }

@@ -8,7 +8,7 @@ import lombok.Getter;
  * @date: Created on 17:24 2018/7/15
  */
 @Getter
-public enum OrderStatusEnum {
+public enum OrderStatusEnum implements CodeEnum {
     NEW(0, "新订单"), FINISHED(1, "已完成"), CANCELED(2, "已取消");
 
     private Integer code;

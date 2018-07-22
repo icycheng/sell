@@ -2,13 +2,18 @@ package com.imooc.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author: icych
  * @description: http请求返回的最外层对象
  * @date: Created on 15:31 2018/7/15
  */
 @Data
-public class ResultVO<T> {
+//@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ResultVO<T> implements Serializable {
+
+    private static final long serialVersionUID = -8349181922768084604L;
 
     /**
      * 状态码

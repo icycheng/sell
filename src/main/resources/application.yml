@@ -4,8 +4,16 @@ spring:
     username: root
     password: cheng
     url: jdbc:mysql://localhost:3306/sell?characterEncoding=utf-8&useSSL=false
+  redis:
+    host: 192.168.0.128
+    port: 6379
+    password:
   jpa:
     show-sql: true
+  jackson:
+    default-property-inclusion: non_null
+  freemarker:
+    request-context-attribute: request
 server:
   context-path: /sell
 
@@ -16,3 +24,29 @@ server:
 #  file: D:/Logs/sell/sell.log
 #  level:
 #    com.imooc.LoggerTest: debug
+
+wechat:
+  #公众号相关
+#  mpAppId: wx2cf4b7e216f1ff54 #测试号
+  mpAppSecret: b5454f15fa60c1979447750b620369c6 #测试号
+
+  mpAppId: wxd898fcb01713c658 #借用号
+
+  #支付相关
+  mchId: 1483469312
+  mchKey: C5245D70627C1F8E9964D494B0735025
+  keyPath: D:/Docs/01d3059e868cedea3b361b2ad1c05254.p12
+  notifyUrl: http://icyc.natapp1.cc/sell/pay/notify
+  openAppId: wx6ad144e54af67d87
+  openAppSecret: 91a2ff6d38a2bbccfb7e9f9079108e2e
+  template-id:
+    orderStatus: xG3lHRBx1Pu3_N8Z0qDYh6ZHPEv9g-xlsEzyAQ8Mar4 #测试号
+
+#openid: oTgZpwchb2kxo2TBxWW7obCVbm0o
+#payUrl: http://sell.springboot.cn/sell/pay?openid=oTgZpwchb2kxo2TBxWW7obCVbm0o&orderId=1531749702764695495&returnUrl=http://www.imooc.com
+
+projectUrl:
+  wechatMpAuthorize: http://icyc.natapp1.cc/sell/wechat/userInfo
+  wechatOpenAuthorize: http://icyc.natapp1.cc/sell/wechat/qrUserInfo
+  sell: http://icyc.natapp1.cc
+  backendAuthorizeUrl: https://open.weixin.qq.com/connect/qrconnect?appid=wx6ad144e54af67d87&redirect_uri=http%3A%2F%2Fsell.springboot.cn%2Fsell%2Fqr%2FoTgZpwchb2kxo2TBxWW7obCVbm0o&response_type=code&scope=snsapi_login&state=http%3a%2f%2ficyc.natapp1.cc%2fsell%2fwechat%2fqrUserInfo

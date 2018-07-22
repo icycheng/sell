@@ -1,4 +1,4 @@
-package com.imooc.service;
+package com.imooc.service.impl;
 
 import com.imooc.converter.OrderMaster2OrderDTOConverter;
 import com.imooc.dataobject.OrderDetail;
@@ -12,8 +12,10 @@ import com.imooc.enums.ResultEnum;
 import com.imooc.exception.SellException;
 import com.imooc.repository.OrderDetailRepository;
 import com.imooc.repository.OrderMasterRepository;
+import com.imooc.service.*;
 import com.imooc.util.BigDecimalUtil;
 import com.imooc.util.KeyGenerator;
+import com.lly835.bestpay.model.RefundResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private PayService payService;
+
+    @Autowired
+    private PushMessageService pushMessageService;
+
+    @Autowired
+    private WebSocket webSocket;
 
     @Override
     @Transactional
@@ -93,6 +104,9 @@ public class OrderServiceImpl implements OrderService {
 
         //4.扣库存
         productService.decreaseStock(cartDTOList);
+
+        //5.推送WebSocket消息到卖家后台
+        webSocket.send("收到新订单, 订单号: " + orderDTO.getOrderId());
 
         return orderDTO;
     }
@@ -147,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
             log.error("[取消订单] 订单状态更新失败, orderMaster={}", orderMaster);
             throw new SellException(ResultEnum.ORDER_STATUS_UPDATE_FAILED);
         }
-        orderDTO.setUpdateTime(new Date());
+        //orderDTO.setUpdateTime(new Date());
 
         //3.返还库存
         List<OrderDetail> orderDetailList = orderDTO.getOrderDetailList();
@@ -164,7 +178,17 @@ public class OrderServiceImpl implements OrderService {
 
         //4.如果已支付,需要退款
         if (orderMaster.getPayStatus().equals(PayStatusEnum.SUCCESS.getCode())) {
-            //todo
+            //退款相关
+            RefundResponse refundResponse = payService.refund(orderDTO);
+            if (refundResponse.getOutRefundNo() != null) {
+                orderMaster.setOrderStatus(PayStatusEnum.REFUNDED.getCode());
+                updateResult = orderMasterRepository.save(orderMaster);
+                if (updateResult == null) {
+                    log.error("[取消订单] 订单支付状态更新失败, orderMaster={}", orderMaster);
+                    throw new SellException(ResultEnum.PAY_STATUS_UPDATE_FAILED);
+                }
+                orderDTO.setUpdateTime(new Date());
+            }
         }
         return orderDTO;
     }
@@ -173,7 +197,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDTO finish(OrderDTO orderDTO) {
         //1.判断订单状态
-        if (!orderDTO.getOrderStatus().equals(OrderStatusEnum.NEW.getCode())) {
+        if (!orderDTO.getOrderStatus().equals(OrderStatusEnum.NEW.getCode()) //
+                || !orderDTO.getPayStatus().equals(PayStatusEnum.SUCCESS.getCode())) {
             log.error("[完结订单] 订单状态不正确, orderId={}, orderStatus={}", //
                     orderDTO.getOrderId(), orderDTO.getOrderStatus());
             throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
@@ -189,6 +214,9 @@ public class OrderServiceImpl implements OrderService {
             throw new SellException(ResultEnum.ORDER_STATUS_UPDATE_FAILED);
         }
         orderDTO.setUpdateTime(new Date());
+
+        //推送模板消息
+        //pushMessageService.push(orderDTO);
 
         return orderDTO;
     }
@@ -223,5 +251,17 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setUpdateTime(new Date());
 
         return orderDTO;
+    }
+
+    @Override
+    public Page<OrderDTO> findList(Pageable pageable) {
+        Page<OrderMaster> orderMasterPage = //
+                orderMasterRepository.findAll(pageable);
+        List<OrderMaster> orderMasterList = orderMasterPage.getContent();
+        //OrderMasterList ==> orderDTOList
+        List<OrderDTO> orderDTOList = OrderMaster2OrderDTOConverter.convert(orderMasterList);
+
+        //orderMasterPage ==> orderDTOPage
+        return new PageImpl<>(orderDTOList, pageable, orderMasterPage.getTotalElements());
     }
 }

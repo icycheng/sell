@@ -31,6 +31,12 @@ public interface ProductService {
      */
     Page<ProductInfo> findAll(Pageable pageable);
 
+    /**
+     * 保存或更新
+     *
+     * @param productInfo
+     * @return
+     */
     ProductInfo save(ProductInfo productInfo);
 
     /**
@@ -46,4 +52,20 @@ public interface ProductService {
      * @param cartDTOList 多件商品(商品编号+购买数量)
      */
     void increaseStock(List<CartDTO> cartDTOList);
+
+    /**
+     * 上架
+     *
+     * @param productId
+     * @return
+     */
+    ProductInfo onSale(String productId);
+
+    /**
+     * 下架
+     *
+     * @param productId
+     * @return
+     */
+    ProductInfo offSale(String productId);
 }

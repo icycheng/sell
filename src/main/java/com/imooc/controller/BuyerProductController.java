@@ -8,12 +8,15 @@ import com.imooc.util.ResultVOUtil;
 import com.imooc.vo.ProductInfoVO;
 import com.imooc.vo.ProductVO;
 import com.imooc.vo.ResultVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/buyer/product")
+@Slf4j
 public class BuyerProductController {
 
     @Autowired
@@ -34,7 +38,8 @@ public class BuyerProductController {
     private CategoryService categoryService;
 
     @GetMapping("/list")
-    public ResultVO list() {
+    @Cacheable(cacheNames = "product", key = "123", unless = "#result.getCode() != 0")
+    public ResultVO list(HttpServletRequest request) {
         //查询所有上架商品
         List<ProductInfo> productInfoList = productService.findUpAll();
         //查出商品对应的类目type
@@ -49,7 +54,7 @@ public class BuyerProductController {
         List<ProductVO> productVOList = new ArrayList<>();
 
         for (ProductCategory category : productCategoryList) {
-            //一个类别可能对应多个商品
+            //一个类别对应多个商品
             ProductVO productVO = new ProductVO();
             productVO.setCategoryName(category.getCategoryName());
             productVO.setCategoryType(category.getCategoryType());
