@@ -24,7 +24,7 @@ public class RedisLock {
      *
      * @param key   加锁对象的key
      * @param value 当前时间 + 超时时间
-     * @return 是否获得所
+     * @return 是否获得锁
      */
     public boolean lock(String key, String value) {
         //当前key不存在, 可以成功设置k-v,返回true
