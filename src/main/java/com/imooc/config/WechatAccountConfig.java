@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * @author: icych
- * @description: 微信相关配置
+ * @description: 微信配置
  * @date: Created on 11:07 2018/7/17
  */
 @Data
