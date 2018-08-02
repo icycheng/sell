@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 public class SecKillServiceImpl implements SecKillService {
 
-    private static final Integer LOCK_TIME_OUT = 1000 * 10;//10s
+    public static final Integer LOCK_TIME_OUT = 1000 * 10;//10s
 
     @Autowired
     private RedisLock redisLock;
@@ -61,26 +61,29 @@ public class SecKillServiceImpl implements SecKillService {
         if (!locked) {
             throw new SellException(101, "哎呦喂,人太多啦,换个姿势再试试~~");
         }
-
-        //1.查询该商品库存，为0则活动结束。
-        int stockNum = stock.get(productId);
-        if (stockNum == 0) {
-            throw new SellException(100, "活动结束");
-        } else {
-            //2.下单(模拟不同用户openid不同)
-            orders.put(KeyGenerator.generate(), productId);
-            //3.减库存
-            stockNum = stockNum - 1;
-            //模拟数据库io
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        redisLock.expire(productId);
+        try {
+            //1.查询该商品库存，为0则活动结束。
+            int stockNum = stock.get(productId);
+            if (stockNum == 0) {
+                throw new SellException(100, "活动结束");
+            } else {
+                //2.下单(模拟不同用户openid不同)
+                orders.put(KeyGenerator.generate(), productId);
+                //3.减库存
+                stockNum = stockNum - 1;
+                //模拟数据库io
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                stock.put(productId, stockNum);
             }
-            stock.put(productId, stockNum);
+        } finally {
+            //解锁
+            redisLock.unlock(productId, time);
         }
-        //解锁
-        redisLock.unlock(productId, time);
     }
 
 }

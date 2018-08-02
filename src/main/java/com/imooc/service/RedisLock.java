@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author: icych
  * @description: Redis分布式锁
@@ -37,7 +39,7 @@ public class RedisLock {
         //如果锁已经过期
         if (StringUtils.isNotBlank(currentVal) //
                 && Long.parseLong(currentVal) < System.currentTimeMillis()) {
-            //获取上一个锁的时间戳
+            //加锁并获取上一个锁的时间戳
             String oldVal = redisTemplate.opsForValue().getAndSet(key, value);
             return StringUtils.isNotBlank(oldVal) && oldVal.equals(currentVal);
         }
@@ -58,6 +60,18 @@ public class RedisLock {
             }
         } catch (Exception e) {
             log.error("[redis分布式锁] 解锁异常, {}", e);
+        }
+    }
+
+    /**
+     * 设置有效期,防止死锁
+     * @param key
+     */
+    public void expire(String key) {
+        try {
+            redisTemplate.opsForValue().getOperations().expire(key, 10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("[redis分布式锁] 设置过期时间异常, {}", e);
         }
     }
 
